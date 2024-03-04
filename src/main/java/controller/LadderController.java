@@ -1,5 +1,6 @@
 package controller;
 
+import domain.model.consequence.Consequence;
 import domain.model.consequence.Consequences;
 import domain.model.ladder.Height;
 import domain.model.ladder.Ladder;
@@ -20,34 +21,29 @@ public class LadderController {
     private final ResultView resultView = new ResultView();
     private final InputView inputView = new InputView();
     private final ExceptionHandler handler = new ExceptionHandler();
-    private final People people;
-    private final Consequences consequences;
-    private final Ladder ladder;
-
-    public LadderController() {
-        this.people = registerPeople();
-        this.consequences = registerConsequences();
-        this.ladder = makeLadder();
-    }
 
     public void execute() {
+        People people = registerPeople();
+        Consequences consequences = registerConsequences(people);
+        Ladder ladder = makeLadder(people);
+
         resultView.printLadderGame(people, ladder, consequences);
         Result result = LadderGame.play(ladder, people, consequences);
-        showResult(result);
+        showResult(result, people);
     }
 
-    private void showResult(Result result) {
-        String chosen = askChosen();
+    private void showResult(Result result, People people) {
+        String chosen = askChosen(people);
         if (chosen.equals("all")) {
             resultView.printAll(result);
             return;
         }
         resultView.printResult(result, new Person(chosen));
-        showResult(result);
+        showResult(result, people);
     }
 
 
-    private String askChosen() {
+    private String askChosen(People people) {
         Supplier<String> chosenSupplier = () -> {
             String chosen = inputView.askChosen();
             return people.findProperParticipant(chosen);
@@ -55,7 +51,7 @@ public class LadderController {
         return registerWithRetry(chosenSupplier);
     }
 
-    private Ladder makeLadder() {
+    private Ladder makeLadder(People people) {
         Supplier<Ladder> ladderSupplier = () -> {
             String inputHeight = inputView.askLadderHeight();
             Height height = new Height(inputHeight);
@@ -72,7 +68,7 @@ public class LadderController {
         return registerWithRetry(peopleSupplier);
     }
 
-    private Consequences registerConsequences() {
+    private Consequences registerConsequences(People people) {
         Supplier<Consequences> consequencesSupplier = () -> {
             List<String> consequences = inputView.askConsequences();
             return new Consequences(consequences, people.getNumberOfParticipants());
