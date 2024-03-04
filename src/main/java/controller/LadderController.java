@@ -26,9 +26,10 @@ public class LadderController {
         People people = registerPeople();
         Consequences consequences = registerConsequences(people);
         Ladder ladder = makeLadder(people);
+        LadderGame ladderGame = new LadderGame(ladder, people, consequences);
 
         resultView.printLadderGame(people, ladder, consequences);
-        Result result = LadderGame.play(ladder, people, consequences);
+        Result result = ladderGame.play();
         showResult(result, people);
     }
 
